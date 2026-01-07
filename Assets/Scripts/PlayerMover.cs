@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,9 +8,6 @@ using UnityEngine;
 public class PlayerMover : MonoBehaviour
 {
     private const float SPEED_COEFFICIENT = 50f;
-    private const string HORIZONTAL_AXIS = "Horizontal";
-    private const string VERTICAL_AXIS = "Vertical";
-    private const string FIRE_1_AXIS = "Fire1";
 
     [SerializeField] private float _moveSpeed = 5f;
     [Header("Dash Settings")]
@@ -26,41 +24,31 @@ public class PlayerMover : MonoBehaviour
         _rigidbody2D = GetComponent<Rigidbody2D>();
     }
 
-    private void FixedUpdate()
+    public void Move(Vector2 direction, bool isDush)
     {
-        _rigidbody2D.velocity = Time.fixedDeltaTime * SPEED_COEFFICIENT * GetMovementVectorWithDashTimerUpdate();
-    }
+        if (direction.sqrMagnitude > 1f)
+            direction.Normalize();
 
-    private Vector2 GetMovementVectorWithDashTimerUpdate()
-    {
-        Vector2 moveInput = new Vector2(Input.GetAxis(HORIZONTAL_AXIS), Input.GetAxis(VERTICAL_AXIS));
-        if (moveInput.sqrMagnitude > 1f)
-        {
-            moveInput.Normalize();
-        }
-
-        if (_dashTimer > 0)
-        {
-            _dashTimer -= Time.fixedDeltaTime;
-            return moveInput * _dashSpeed;
-        }
-        else if (_cooldownTimer > 0)
+        float currentSpeed = _moveSpeed;
+        if (_cooldownTimer > 0f) 
         {
             _cooldownTimer -= Time.fixedDeltaTime;
-        }
-
-        return moveInput * _moveSpeed;
-    }
-
-    private void Update()
-    {
-        if (Input.GetAxisRaw(FIRE_1_AXIS) != 0)
+        } 
+        else if (isDush)
         {
-            if (_cooldownTimer <= 0 && (Input.GetAxis(HORIZONTAL_AXIS) != 0 || Input.GetAxis(VERTICAL_AXIS) != 0))
-            {
-                _dashTimer = _dashDuration;
-                _cooldownTimer = _dashCooldown;
-            }
+            _dashTimer -= Time.fixedDeltaTime;
+            currentSpeed = _dashSpeed;
         }
+
+        if (_dashTimer <= 0f)
+        {
+            _dashTimer = _dashDuration;
+            _cooldownTimer = _dashCooldown;
+        }
+
+        Vector3 pos = transform.position;
+        pos.z = pos.y - 0.25f;
+        transform.position = pos;
+        _rigidbody2D.velocity = Time.fixedDeltaTime * SPEED_COEFFICIENT * direction * currentSpeed;
     }
 }
