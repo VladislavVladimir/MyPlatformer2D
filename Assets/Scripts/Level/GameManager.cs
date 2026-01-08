@@ -11,9 +11,12 @@ public class GameManager : MonoBehaviour
         foreach (SpriteRenderer r in renderers)
         {
             Transform t = r.transform; 
-            Vector3 pos = t.position; 
-            pos.z = r.bounds.min.y; 
-            t.position = pos;
+            if (t.position.z == 0f)
+            {
+                Vector3 pos = t.position;
+                pos.z = r.bounds.min.y;
+                t.position = pos;
+            }
         }
     }
 }
